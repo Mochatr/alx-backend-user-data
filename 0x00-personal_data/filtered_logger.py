@@ -4,6 +4,7 @@ This module provides the filter_datum function
 to obfuscate specific fields in a log message.
 """
 
+import logging
 import re
 from typing import List
 
@@ -26,18 +27,19 @@ def filter_datum(fields: List[str], redaction: str,
                   lambda m: f"{m.group(1)}={redaction}{separator}", message)
 
 
-def RedactFormatter(logging.Formatter):
+class RedactingFormatter(logging.Formatter):
     """
-    Redacting Formatter class
+    Redacting Formatter class.
     """
 
     REDACTION = "***"
-    FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(messgae)s"
+    FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
     SEPARATOR = ";"
 
-    def __init__(self, fields: List[str]):
+    def __init__(self):
         """
-        Initialize the formatter with the fields to be redacted.
+        Initialize the formatter with the fields to be
+        redacted.
         """
         super(RedactingFormatter, self).__init__(self.FORMAT)
         self.fields = fields
@@ -46,7 +48,6 @@ def RedactFormatter(logging.Formatter):
         """
         Format the log record by redacting sensitive fields.
         """
-        from filter_datum import filter_datum
         record.msg = filter_datum(self.fields, self.REDACTION,
                                   record.msg, self.SEPARATOR)
         return super(RedactingFormatter, self).format(record)
